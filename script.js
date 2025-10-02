@@ -1,90 +1,92 @@
-// DOM Elements
+const taskForm = document.getElementById("taskForm");
 const taskInput = document.getElementById("taskInput");
-const category = document.getElementById("category");
-const priority = document.getElementById("priority");
-const deadline = document.getElementById("deadline");
-const addBtn = document.getElementById("addBtn");
+const deadlineInput = document.getElementById("deadlineInput");
+const priorityInput = document.getElementById("priorityInput");
 const taskList = document.getElementById("taskList");
+const clearAllBtn = document.getElementById("clearAllBtn");
+const progressBar = document.getElementById("progress");
+const progressText = document.getElementById("progressText");
 
-document.addEventListener("DOMContentLoaded", loadTasks);
+let tasks = [];
 
-addBtn.addEventListener("click", () => {
-  if (taskInput.value.trim() === "") {
-    alert("Please enter a task!");
-    return;
-  }
-  addTask(taskInput.value, category.value, priority.value, deadline.value, false);
-  saveTasks();
-  taskInput.value = "";
-  deadline.value = "";
+taskForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const taskText = taskInput.value.trim();
+  const deadline = deadlineInput.value;
+  const priority = priorityInput.value;
+
+  if (taskText === "") return;
+
+  const task = {
+    id: Date.now(),
+    text: taskText,
+    deadline: deadline,
+    priority: priority,
+    completed: false,
+  };
+
+  tasks.push(task);
+  renderTasks();
+  taskForm.reset();
 });
 
-function addTask(text, category, priority, deadline, completed) {
-  const li = document.createElement("li");
-  li.classList.add(priority.toLowerCase());
-
-  if (completed) li.classList.add("completed");
-
-  let countdown = "";
-  if (deadline) {
-    const timeLeft = getTimeLeft(deadline);
-    countdown = `<br><small class="deadline">⏳ ${timeLeft}</small>`;
-  }
-
-  li.innerHTML = `
-    <div class="task-details">
-      <strong>${text}</strong> <br>
-      <small>${category} | ${priority}</small>
-      ${countdown}
-    </div>
-    <div class="task-actions">
-      <button class="complete-btn">✔</button>
-      <button class="delete-btn">🗑</button>
-    </div>
-  `;
-
-  // Buttons
-  li.querySelector(".complete-btn").addEventListener("click", () => {
-    li.classList.toggle("completed");
-    saveTasks();
-  });
-
-  li.querySelector(".delete-btn").addEventListener("click", () => {
-    li.remove();
-    saveTasks();
-  });
-
-  taskList.appendChild(li);
-}
-
-// Save to localStorage
-function saveTasks() {
-  const tasks = [];
-  document.querySelectorAll("li").forEach(li => {
-    tasks.push({
-      text: li.querySelector("strong").innerText,
-      category: li.querySelector("small").innerText.split(" | ")[0],
-      priority: li.querySelector("small").innerText.split(" | ")[1],
-      deadline: li.querySelector(".deadline")?.innerText.replace("⏳ ", ""),
-      completed: li.classList.contains("completed")
-    });
-  });
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-// Load from localStorage
-function loadTasks() {
-  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+function renderTasks() {
+  taskList.innerHTML = "";
   tasks.forEach(task => {
-    addTask(task.text, task.category, task.priority, task.deadline, task.completed);
+    const li = document.createElement("li");
+    if (task.completed) li.classList.add("completed");
+
+    li.innerHTML = `
+      <div class="task-info">
+        <strong>${task.text}</strong> 
+        ${task.deadline ? `<small>📅 ${task.deadline}</small>` : ""}
+        <span class="priority-${task.priority.toLowerCase()}">[${task.priority}]</span>
+      </div>
+      <div class="task-actions">
+        <button onclick="toggleComplete(${task.id})">✔</button>
+        <button class="edit" onclick="editTask(${task.id})">✏</button>
+        <button class="delete" onclick="deleteTask(${task.id})">🗑</button>
+      </div>
+    `;
+    taskList.appendChild(li);
   });
+
+  updateProgress();
 }
 
-// Countdown Function
-function getTimeLeft(deadline) {
-  const diff = new Date(deadline) - new Date();
-  if (diff <= 0) return "Deadline Passed";
-  const hrs = Math.floor(diff / (1000 * 60 * 60));
-  const mins = Math.floor((diff / (1000 * 60)) % 60);
-  return `${hrs}h ${mins}m left`;
+function toggleComplete(id) {
+  tasks = tasks.map(task =>
+    task.id === id ? { ...task, completed: !task.completed } : task
+  );
+  renderTasks();
+}
+
+function editTask(id) {
+  const task = tasks.find(t => t.id === id);
+  taskInput.value = task.text;
+  deadlineInput.value = task.deadline;
+  priorityInput.value = task.priority;
+
+  deleteTask(id); // Remove old version before editing
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(task => task.id !== id);
+  renderTasks();
+}
+
+clearAllBtn.addEventListener("click", () => {
+  tasks = [];
+  renderTasks();
+});
+
+function updateProgress() {
+  const total = tasks.length;
+  const completed = tasks.filter(t => t.completed).length;
+  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+  progressBar.style.width = percent + "%";
+  progressBar.textContent = percent + "%";
+  progressText.textContent = `${completed} of ${total} tasks completed`;
 }
