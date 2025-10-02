@@ -3,32 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart To-Do App</title>
+  <title>To-Do App ✅</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🌟 Smart To-Do App</h1>
+    <h1>To-Do App ✅</h1>
 
-    <!-- Task Input -->
-    <div class="task-input">
-      <input type="text" id="taskInput" placeholder="Enter a new task...">
-      <select id="category">
-        <option value="Work">💼 Work</option>
-        <option value="Study">📚 Study</option>
-        <option value="Personal">🏡 Personal</option>
+    <!-- Task Form -->
+    <form id="taskForm">
+      <input type="text" id="taskInput" placeholder="Enter a new task" required>
+      <input type="date" id="deadlineInput">
+      <select id="priorityInput">
+        <option value="High">High</option>
+        <option value="Medium" selected>Medium</option>
+        <option value="Low">Low</option>
       </select>
-      <select id="priority">
-        <option value="High">🔴 High</option>
-        <option value="Medium">🟡 Medium</option>
-        <option value="Low">🟢 Low</option>
-      </select>
-      <input type="datetime-local" id="deadline">
-      <button id="addBtn">➕ Add</button>
+      <button type="submit">➕ Add Task</button>
+    </form>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div id="progress">0%</div>
     </div>
+    <p id="progressText">0 of 0 tasks completed</p>
 
     <!-- Task List -->
     <ul id="taskList"></ul>
+
+    <!-- Clear All Button -->
+    <button id="clearAllBtn">🗑 Clear All</button>
   </div>
 
   <script src="script.js"></script>
